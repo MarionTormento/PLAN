@@ -1,0 +1,28 @@
+<launch>
+
+ <arg name="robot_base"          default="base" />           <!-- Name of the robot base frame -->
+ <arg name="kinect_frame"         default="kinect2_ir_optical_frame" />
+
+ <include file="$(find embedded_control)/launch/kinect_motor_control.launch"/>
+ 
+ <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch"/>
+
+  <!-- Run the static tf transforms from the static servo frame to the robot base -->
+<!--   <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_servokinect"  args="0.25 -0.0396 0.917 0.5 -0.5 0.5 -0.5 $(arg robot_base) /kinect_servo_frame" />
+
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="kinect_broadcaster" args="0.0 0.0 0.0 -0.259 0.0 0.0 0.966 /kinect_servo_frame $(arg kinect_frame)" /> -->
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="left_gripper_to_tip"  args="0.0 0.0 0.086 0.0 0.0 0.0 1.0 /left_gripper /left_null_gripper" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="right_gripper_to_tip"  args="0.0 0.0 0.086 0.0 0.0 0.0 1.0 /right_gripper /right_null_gripper" />
+
+  <!-- IF CONNECTED TO THE MOTOR COMMENT THE STATIC TF AND PUBLISH THE FOLLOWING -->
+  <!-- <include file="$(find embedded_control)/launch/kinect_motor_control.launch" /> -->
+
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+  <!-- Construct the object for moveit -->
+  <node pkg="embedded_control" type="kinect_calibration.py" name="kinect_calibration_transform" output="screen"/>
+
+</launch>

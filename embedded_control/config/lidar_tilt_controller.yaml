@@ -1,0 +1,12 @@
+lidar_tilt_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_torque_controller
+        type: JointTorqueController
+    joint_name: lidar_scan_joint
+    joint_speed: 0.2
+    motor:
+        id: 2
+        init: 0
+        min: 0
+        max: 4095

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!--
+# Launch file for the 3D LIDAR (orange)
+# Author: Petar and Nicholas
+# May 2018
+-->
+
+<launch>
+
+  <!-- Laser scanner -->
+  <node name="scan1" pkg="urg_node" type="urg_node" output="screen" >
+    <param name="ip_address" value="192.168.0.30" /> <!-- ip address for the hokuyo lidar -->
+    <param name="frame_id" value="laser" /> <!-- set frame id for lases scan -->
+    <param name="calibrate_time" value="true" />
+    <param name="publish_intensity" value="true" /> <!-- set to false to save bandwith -->
+    <param name="angle_min" value="-2.356" />   <!-- Laser scanner range to use. Must be less than 270 degree default otherwise base sees itself as an obstacle -->
+    <!-- minimum scan angle -->
+    <param name="angle_max" value="2.356"/> <!-- Laser scanner range to use. Must be less than 270 degree default otherwise base sees itself as an obstacle -->
+    <!-- maximum scan angle -->
+  </node>
+
+
+  <!-- tf transform 1.57-->
+  <node name="world_to_lidar_tf" pkg="tf" type="static_transform_publisher" output="screen" args="0 0 0 0 1.57 0 /world /laser 100">
+  </node>
+
+
+</launch>

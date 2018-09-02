@@ -1,0 +1,84 @@
+<!-- -*- mode: XML -*- -->
+
+<!--
+    Launch file for 3D laser scanner on DE NIRO
+ -->
+
+<launch>
+
+    <arg name="robot_base"      default="base"/>       <!-- Name of the robot base frame. Used as output for the point cloud and as argument for the servo tf broadcaster -->
+    <arg name="lidar_frame"         default="3d_lidar" />                   <!-- Name of lidar frame -->
+
+    <arg name="servo_frame"         default="lidar_servo_frame" />          <!-- Name of the static frame of the lidar servo -->
+
+    <arg name="scan_in"         default="/robot/laser/scan" />  <!-- Name of the scan topic published by the laser
+                                                                 scanner and fed to laser assembler -->
+
+    <!-- IPs of the two laser scanners we have -->
+    <!-- Orange Laser Scanner -->
+    <arg name="lidar_ip"        default="192.168.0.30"/>
+    <!-- Dark Blue Laser Scanner -->
+    <!-- <arg name="lidar_ip"        default="192.168.0.31"/>     -->
+    <arg name="lidar_angle_min" default="-2.3561" />        <!-- Min angle for the lidar scan in rad -->
+    <arg name="lidar_angle_max" default="2.3561" />         <!-- Max angle for the lidar scan in rad -->
+    <arg name="times_topic"     default="assemble_times" /> <!-- Name of the topic to publish times for laser assembler -->
+    <arg name="cloud_out"       default="/robot/lidar/3d_cloud" /> <!-- Name of the topic to publish the 3d point cloud -->
+    <arg name="controller_name"     default="lidar_tilt_controller" />      <!-- Unique name of the controller -->
+
+    <!-- Start the lidar motor controller and its position broadcaster -->
+    <include file="$(find embedded_control)/launch/lidar_motor_control.launch" >
+        <arg name="robot_base"  value="$(arg robot_base)" />    <!-- Name of the robot base frame -->
+        <arg name="servo_frame"  value="$(arg servo_frame)" />    <!-- Name of the servo frame -->
+        <arg name="lidar_frame" value="$(arg lidar_frame)" />   <!-- Name of the lidar base frame -->
+        <arg name="times_topic" value="$(arg times_topic)" />   <!-- Name of the topic to publish times for laser assembler -->
+    </include>
+
+    <!-- Start the laser scanner -->
+    <node pkg="urg_node" type="urg_node" name="scan1" output="screen" >
+        <!-- Remap the output topic name -->
+        <remap from="scan" to="$(arg scan_in)"/>
+
+        <param name="ip_address"            value="$(arg lidar_ip)" />
+        <param name="frame_id"              value="$(arg lidar_frame)" />
+        <param name="angle_min"             value="$(arg lidar_angle_min)" />
+        <param name="angle_max"             value="$(arg lidar_angle_max"/>
+        <param name="calibrate_time"        value="true" />
+        <param name="publish_intensity"     value="false" />
+    </node>
+
+     <!-- Start the laser_assembler to combine laser scans into PointCloud2 -->
+    <node pkg="laser_assembler" type="laser_scan_assembler" name="my_assembler" required="true" output="screen">
+        <!-- Remap the input topic name -->
+        <remap from="scan"  to="$(arg scan_in)"/>
+        <param name="max_scans"     type="int"      value="150" />
+        <param name="fixed_frame"   type="string"   value="$(arg robot_base)" />
+    </node>
+
+    <!-- Start the node that requests scans to be assembled and publishes the point cloud -->
+    <node pkg="embedded_control" type="scan_assembler.py" name="scan_assembler_client" required="true" output="screen">
+        <param name="times_in"      value="$(arg times_topic)" />
+        <param name="cloud_out"     value="$(arg cloud_out)" />
+    </node>
+
+    <!-- Start the tf_broadcaster to know the transformation matrix between the point cloud and world-->
+    <node pkg="embedded_control" type="lidar_3d_tf_broadcaster.py" name="lidar_3d_tf_broadcaster" required="true" output="screen">
+        <param name="controller_name"      	value="$(arg controller_name)" />
+        <param name="servo_frame"      		value="$(arg servo_frame)" />
+        <param name="lidar_frame"      value="$(arg lidar_frame)" />
+    </node>
+-
+    <!-- Start the octomap server node to build the complete 3d map-->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+        <param name="resolution" value="0.05" />
+        
+        <!-- fixed map frame -->
+        <param name="frame_id" type="string" value="$(arg robot_base)" />
+        
+        <!-- maximum range to integrate (speedup!), value will influence the distance up to the sensor is going to collect data -->
+        <param name="sensor_model/max_range" value="5.0" />
+        
+        <!-- data source to integrate (PointCloud2) -->
+        <remap from="cloud_in" to="$(arg cloud_out)" />
+    </node>
+
+</launch>

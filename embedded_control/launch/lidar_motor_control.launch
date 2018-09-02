@@ -1,0 +1,57 @@
+<!-- -*- mode: XML -*- -->
+
+<launch>
+    <arg name="robot_base"          default="robot_base_frame" />           <!-- Name of the robot base frame -->
+    <arg name="lidar_frame"         default="3d_lidar" />                   <!-- Name of lidar frame -->
+
+    <arg name="servo_frame"         default="lidar_servo_frame" />          <!-- Name of the static frame of the lidar servo -->
+
+    <arg name="controller_name"     default="lidar_tilt_controller" />      <!-- Unique name of the controller -->
+    <arg name="times_topic"         default="assemble_times" />             <!-- Name of the topic to publish times for laser assembler -->
+
+    <node name="dynamixel_manager" pkg="dynamixel_controllers" type="controller_manager.py" required="true" output="screen">
+        <rosparam>
+            namespace: dxl_manager
+            serial_ports:
+                pan_tilt_port:
+                    port_name: "/dev/ttyACM0"
+                    baud_rate: 1000000
+                    min_motor_id: 2
+                    max_motor_id: 2
+                    update_rate: 100
+        </rosparam>
+    </node>
+
+    <!-- Load controller configuration to parameter server -->
+    <rosparam file="$(find embedded_control)/config/lidar_tilt_controller.yaml" command="load"/>
+
+    <!-- Start the joint controller -->
+    <node pkg="dynamixel_controllers" type="controller_spawner.py" name="lidar_controller_spawner"
+            args="--manager=dxl_manager
+                --port=pan_tilt_port
+                $(arg controller_name)"
+            output="screen"/>
+
+    <!-- Run the static tf transforms from the static servo frame to the robot base -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="lidar_static_frame_br"  args="0.210 0.007 0.123 0 0 0 1 $(arg robot_base) $(arg servo_frame)" />
+
+    <!-- Start the node that spins the servo -->
+    <node name="dynamixel_motor_control" pkg="embedded_control" type="motor_control.py" required="true" output="screen">
+        <param name="controller_name"       value="$(arg controller_name)" />
+        <param name="times_out"             value="$(arg times_topic)" />
+    </node>
+
+
+    <!-- Start servo position tf broadcaster -->
+    <node pkg="embedded_control" type="lidar_3d_tf_broadcaster.py" name="lidar_3d_tf_br" required="true" respawn="false" output="screen" args="--clock">
+        <param name="servo_frame"           value="$(arg servo_frame)" />
+        <param name="lidar_frame"           value="$(arg lidar_frame)" />
+        <param name="controller_name"       value="$(arg controller_name)" />
+    </node>
+
+    <!-- Start the GUI to control motor speed and monitor temperature -->
+    <node name="lidar_motor_GUI" pkg="embedded_control" type="gui_lidar.py" required="true" output="screen">
+    </node>
+
+
+</launch>

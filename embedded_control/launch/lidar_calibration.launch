@@ -1,0 +1,47 @@
+<launch>
+	<!-- <include file="$(find embedded_control)/launch/lidar_3d_scan.launch"/> -->
+
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+	  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_x" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/robot/lidar/3d_cloud" />
+    <rosparam>
+      filter_field_name: x
+      filter_limit_min: 0.0
+      filter_limit_max: 1.2
+      filter_limit_negative: False
+      leaf_size: 0.01
+    </rosparam>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_y" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/voxel_grid_x/output" />
+    <rosparam>
+      filter_field_name: y
+      filter_limit_min: -1.0
+      filter_limit_max: 1.0
+      filter_limit_negative: False
+      leaf_size: 0.01
+    </rosparam>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="calibpcl" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/voxel_grid_y/output" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: -0.5
+      filter_limit_max: 2.0
+      filter_limit_negative: False
+      leaf_size: 0.01
+    </rosparam>
+  </node>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="left_gripper_to_tip"  args="0.0 0.0 0.086 0.0 0.0 0.0 1.0 /left_gripper /left_null_gripper" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="right_gripper_to_tip"  args="0.0 0.0 0.086 0.0 0.0 0.0 1.0 /right_gripper /right_null_gripper" />
+
+  <!-- Construct the object for moveit -->
+  <node pkg="embedded_control" type="kinect_calibration.py" name="lidar_calibration_transform" output="screen"/>
+
+</launch>
