@@ -23,7 +23,6 @@
 ros::Publisher pub_object;
 ros::Publisher pub_box;
 
-
 boost::shared_ptr<pcl::visualization::PCLVisualizer>
 tripleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud2, pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud3)
 {
@@ -41,7 +40,6 @@ tripleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, pcl::PointCloud<pcl::
   pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> single_color3(cloud3, 255,0,255);
   viewer->addPointCloud<pcl::PointXYZ> (cloud3, single_color3, "sample cloud3");
   viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 10, "sample cloud3");
-  //viewer->addCoordinateSystem (1.0, "global");
   viewer->initCameraParameters ();
   return (viewer);
 
@@ -58,7 +56,6 @@ simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
   pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> single_color(cloud, 255, 255, 255);
   viewer->addPointCloud<pcl::PointXYZ> (cloud, single_color, "sample cloud");
   viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-  //viewer->addCoordinateSystem (1.0, "global");
   viewer->initCameraParameters ();
   return (viewer);
 
@@ -206,15 +203,12 @@ isCylinder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in, pcl::PointCloud<pcl::No
 
     // Obtain the cylinder inliers and coefficients
     seg_normal.segment (*inliers_cylinder, *coefficients_cylinder);
-    // std::cerr << "Cylinder coefficients: " << *coefficients_cylinder << std::endl;
 
     // Write the cylinder inliers to disk
     extract.setInputCloud (cloud_in);
     extract.setIndices (inliers_cylinder);
     extract.setNegative (false);    
     extract.filter (*cloud_cylinder);
-
-    // std::cerr << "Ratio of points belonging to the cylinder model:" << cloud_cylinder->points.size() << " / " << cloud_in->points.size() << std::endl;
 
     return cloud_cylinder->points.size();
 }
@@ -251,9 +245,6 @@ isPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in, pcl::PointCloud<pcl::Point
     proj.setModelCoefficients (coefficients_plane);
     proj.filter (*cloud_plane);
 
-
-    // std::cerr << "Ratio of point belonging to the plane model: " << cloud_plane->points.size() << " / " << cloud_in->points.size() << std::endl;
-
     return cloud_plane->points.size();
 }
 
@@ -266,7 +257,6 @@ find_objects(const boost::shared_ptr<const sensor_msgs::PointCloud2>& cloud_msg)
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
-
 
     // Cloud conversions to the correct format
     pcl::PCLPointCloud2 pcl_pc;
@@ -539,211 +529,3 @@ main (int argc, char** argv)
   ros::spin ();
 
 }
-
-
-
-    // // Convert to ROS data type
-    // pcl::PCLPointCloud2 cloud_final;
-    // sensor_msgs::PointCloud2 output;    
-
-    // pcl::toPCLPointCloud2(*cloud_hull, cloud_final);
-    // pcl_conversions::fromPCL(cloud_final, output);
-
-    //   // Random sample consensus
-    // std::vector<int> inliers;
-   //  // created RandomSampleConsensus object and compute the appropriated model
-   //  pcl::SampleConsensusModelPlane<pcl::PointXYZ>::Ptr
-   //    model_p (new pcl::SampleConsensusModelPlane<pcl::PointXYZ> (cloud));
-    
-   //  pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_p);
-   //  ransac.setDistanceThreshold (.01);
-   //  ransac.computeModel();
-   //  ransac.getInliers(inliers);
-    
-   //  // copies all inliers of the model computed to another PointCloud
-   //  pcl::copyPointCloud<pcl::PointXYZ>(*cloud, inliers, *final);
-
-   //  // Clean the data in case random points are in the plane
-   //  double meanoflist, stdvoflist;
-   //  pcl::PointXYZ mean(0.0, 0.0, 0.0);
-   //  pcl::PointXYZ stdv(0.0, 0.0, 0.0);
-   //  std::vector<float> finalX;
-   //  std::vector<float> finalY;
-   //  std::vector<float> finalZ;
-
-   //  for (size_t i = 0; i < inliers.size (); ++i)
-   //  {
-   //    finalX.push_back (final->points[i].x);
-   //    finalY.push_back (final->points[i].y);
-   //    finalZ.push_back (final->points[i].z);
-
-   //  }
-
-   //  pcl::getMeanStd (finalX, meanoflist, stdvoflist);
-   //  mean.x = meanoflist;
-   //  stdv.x = stdvoflist;
-   //  pcl::getMeanStd  (finalY, meanoflist, stdvoflist);
-   //  mean.y = meanoflist;
-   //  stdv.y = stdvoflist;
-   //  pcl::getMeanStd  (finalZ, meanoflist, stdvoflist); 
-   //  mean.z = meanoflist;
-   //  stdv.z = stdvoflist;
-   //  double devfactor = 2;
-
-    // pcl::PointIndices::Ptr inliers2(new pcl::PointIndices());
-    // pcl::ExtractIndices<pcl::PointXYZ> extract;
-    // for (int i = 0; i < (*final).size(); i++)
-    // {
-    //   pcl::PointXYZ pt(final->points[i].x, final->points[i].y, final->points[i].z), delta;
-    //   delta.getArray3fMap() = abs(pt.getArray3fMap() - mean.getArray3fMap());
-    //   if (delta.x < devfactor*stdv.x and delta.y < devfactor*stdv.y and delta.z < devfactor*stdv.z) // e.g. remove all pts below zAvg
-    //   {
-    //     inliers2->indices.push_back(i);
-    //   }
-    // }
-    // extract.setInputCloud(final);
-    // extract.setIndices(inliers2);
-    // extract.setNegative(false);
-    // extract.filter(*final);
-
-   //  // Find centroid of the table
-   //  pcl::CentroidPoint<pcl::PointXYZ> centroid;
-   //  for (size_t i = 0; i < inliers.size (); ++i)
-   //  {
-   //    centroid.add (final->points[i]);
-   //  }
-
-   //  pcl::PointXYZ center1, center0;
-   //  centroid.get (center1);
-   //  center0.x = 0; center0.y = 0; center0.z=0;
-
-   //  pcl::PointCloud<pcl::PointXYZ> center;
-   //  center.push_back (center1);
-   //  center.push_back (center0);
-
-   //  // std::cerr << "centroid coordinates" << center1.x << " "
-   //  //                                     << center1.y << " "
-   //  //                                     << center1.z << std::endl;
-
-   //  // Find dimensions of the objects
-   //  pcl::PointXYZ maxP, minP, c1, c2, c3, c4;
-    // maxP.x = -100; maxP.y = -100; maxP.z = -100;
-   //  minP.x = 100; minP.y = 100; minP.z = 100;
-   //  float dx, dy;
-
-   //  for (int i = 0; i < final->points.size (); ++i)
-   //  {
-   //    if (final->points[i].x > maxP.x)
-   //    {
-   //      maxP.x = final->points[i].x;
-   //    }
-   //    if (final->points[i].x < minP.x)
-   //    {
-   //      minP.x = final->points[i].x;
-   //    }
-   //    if (final->points[i].y > maxP.y)
-   //    {
-   //      maxP.y = final->points[i].y;
-   //    }
-   //    if (final->points[i].y < minP.y)
-   //    {
-   //      minP.y = final->points[i].y;
-   //   }
-   //    if (final->points[i].z > maxP.z)
-   //    {
-   //      maxP.z = final->points[i].z;
-   //    }
-   //    if (final->points[i].z < minP.z)
-   //    {
-   //      minP.z = final->points[i].z;
-   //   }
-   //  }
-
-   //  // Methode fausse !!!
-
-   //  c1.x = minP.x; c1.y = minP.y; c1.z = maxP.z;
-   //  c2.x = maxP.x; c2.y = minP.y; c2.z = maxP.z;
-   //  c3.x = maxP.x; c3.y = maxP.y; c3.z = minP.z;
-   //  c4.x = minP.x; c4.y = maxP.y; c4.z = minP.z;
-    
-   //  center.push_back (c1);
-   //  center.push_back (c2);
-   //  center.push_back (c3);
-   //  center.push_back (c4);
-   //  dx = pcl::euclideanDistance(c1,c2);
-   //  dy = pcl::euclideanDistance(c1,c4);
-
-   //  // std::cerr << "dx = " << dx << " dy = " << dy << std::endl;
-
-   //  // creates the visualization object and adds either our orignial cloud or all of the inliers
-   //  // depending on the command line arguments specified.
-        // // Create a Convex Hull representation of the projected inliers
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_hull (new pcl::PointCloud<pcl::PointXYZ>);
-    // pcl::ConvexHull<pcl::PointXYZ> chull;
-    // chull.setInputCloud (cloud_filtered);
-    // chull.reconstruct (*cloud_hull);
-
-// void 
-// find_objects(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud_table, pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud_objects)
-// {
-//   pcl::PCDWriter writer;
-
-//   // Creating the KdTree object for the search method of the extraction
-//   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-//   tree->setInputCloud (cloud_objects);
-
-//   std::vector<pcl::PointIndices> cluster_indices;
-//   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-//   ec.setClusterTolerance (0.02); // 2cm
-//   ec.setMinClusterSize (100);
-//   ec.setMaxClusterSize (25000);
-//   ec.setSearchMethod (tree);
-//   ec.setInputCloud (cloud_objects);
-//   ec.extract (cluster_indices);
-
-//   int j = 0;
-//   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-//   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-//   {
-//     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
-//       cloud_cluster->points.push_back (cloud_objects->points[*pit]); //*
-//     cloud_cluster->width = cloud_cluster->points.size ();
-//     cloud_cluster->height = 1;
-//     cloud_cluster->is_dense = true;
-
-//     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-//     std::stringstream ss;
-//     ss << "cloud_cluster_" << j << ".pcd";
-//     writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
-//     j++;
-//   }
-
-//   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
-//   viewer = simpleVis(cloud, cloud_table, cloud_cluster);
-//   while (!viewer->wasStopped ())
-//   {
-//     viewer->spinOnce (100);
-//     boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-//   }
-// }
-
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr cstObj1(&object1);
-    // for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-    // {
-    //   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-    //   for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
-    //     cloud_cluster->points.push_back (objectsOnTable->points[*pit]); //*
-    //   cloud_cluster->width = cloud_cluster->points.size ();
-    //   cloud_cluster->height = 1;
-    //   cloud_cluster->is_dense = true;
-
-    //   std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-    // }
-
-    // std::cerr << "point in " << maxPoint.x << " "<< maxPoint.y << " "<< maxPoint.z << " " << std::endl;
-    // std::cerr << "point in " << minPoint.x << " "<< minPoint.y << " "<< minPoint.z << " " << std::endl;
-
-    // pcl::PointCloud<pcl::PointXYZ> center;
-    // center.push_back (centerTable);
-
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr constCenter(&center);

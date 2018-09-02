@@ -11,8 +11,6 @@ import roslib
 import rospy
 import math
 import tf
-# import tf2_ros
-# import tf2_geometry_msgs
 import std_msgs.msg
 from sensor_msgs.msg import PointCloud2
 from pcl_detection.msg import obj, box
@@ -119,8 +117,6 @@ if __name__ == '__main__':
     g_base_frame       = rospy.get_param('~robot_base')
 
     tfListener = tf.TransformListener()
-    # tfBuffer = tf2_ros.Buffer()
-    # tfListener = tf2_ros.TransformListener(tfBuffer)
 
     objSub = rospy.Subscriber("/pcl/object/kinect_frame", obj, projectObject)
     boxSub = rospy.Subscriber("/pcl/box/kinect_frame", box, projectBox)
@@ -130,42 +126,3 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
         rate.sleep()
-
-
-                # yaw = math.atan2(R[2,1], R[2,2])
-        # pitch = math.atan2(-R[2,0], math.sqrt(R[2,1]**2+R[2,2]**2))
-        # roll = math.atan2(R[1,0], R[0,0])
-        # quat = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
-
-        # # transform routine
-        # transform = tfBuffer.lookup_transform(g_base_frame, g_kinect_frame, rospy.Time(0))
-        # # transform.transform.rotation.x = -transform.transform.rotation.x
-        # # transform.transform.rotation.y = transform.transform.rotation.z
-        # # transform.transform.rotation.z = transform.transform.rotation.w
-        # # transform.transform.rotation.w = -transform.transform.rotation.w
-        # # euler = tf.transformations.euler_from_quaternion((transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w))
-        # # R2 = np.asarray([[math.cos(euler[0])*math.cos(euler[1]), math.cos(euler[0])*math.sin(euler[1])*math.sin(euler[2])-math.cos(euler[2])*math.sin(euler[0]), math.sin(euler[0])*math.sin(euler[2])+math.cos(euler[0])*math.cos(euler[2])*math.sin(euler[1])],
-        # #                 [math.cos(euler[1])*math.sin(euler[0]), math.cos(euler[0])*math.cos(euler[2])+math.sin(euler[0])*math.sin(euler[1])*math.sin(euler[2]), math.cos(euler[2])*math.sin(euler[0])*math.sin(euler[1])-math.cos(euler[0])*math.sin(euler[2])],
-        # #                 [-math.sin(euler[1]), math.cos(euler[1])*math.sin(euler[2]), math.cos(euler[1])*math.cos(euler[2])]])
-
-        # oldPose = Pose()
-        # oldPose.position.x = msg.center[0]
-        # oldPose.position.y = msg.center[1]
-        # oldPose.position.z = msg.center[2]
-        # oldPose.orientation.x = msg.quaternion[0]
-        # oldPose.orientation.y = msg.quaternion[1]
-        # oldPose.orientation.z = msg.quaternion[2]
-        # oldPose.orientation.w = msg.quaternion[3]
-        # pose_base = PoseStamped()
-        # pose_base.pose = oldPose
-        # pose_transformed = tf2_geometry_msgs.do_transform_pose(pose_base, transform)
-        
-        # # print "RM \n", R, "\n R2 \n", R2
-        # # angle = tf.transformations.euler_from_quaternion((pose_transformed.pose.orientation.x, pose_transformed.pose.orientation.y, pose_transformed.pose.orientation.z, pose_transformed.pose.orientation.w))
-        # # print "M angle:", val, "\n transform angle:", pose_transformed.pose.position
-        # # angle = -(angle[2]-1.5708)
-        # # obj.quaternion = tf.transformations.quaternion_from_euler(0, 0, angle)
-
-        # obj.center = [pose_transformed.pose.position.x, pose_transformed.pose.position.y, pose_transformed.pose.position.z]
-        # obj.quaternion = [pose_transformed.pose.orientation.x, pose_transformed.pose.orientation.y, pose_transformed.pose.orientation.z, pose_transformed.pose.orientation.w]
-        # objPub.publish(obj)

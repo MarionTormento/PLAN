@@ -1,5 +1,4 @@
-<launch>
-	
+<launch>	
     <!-- Run joint trajectory action server node (required for MoveIt!) -->
     <node pkg="baxter_interface" type="joint_trajectory_action_server.py" name="trajectory_node" >
     </node>
@@ -8,7 +7,7 @@
         <remap from="joint_states" to="robot/joint_states"/> 
 
     <!-- Run the baxter_pnp node to initiate pick and place operation of objects -->
-	<node pkg="baxter_pnp_one_arm" type="kinect_pnp.py" name="pnp" output="screen">
-		    <param name="object_topic"       value="/pcl/object/base_frame" />
+	<node pkg="deniro_pnp_one_arm" type="pnp_one_arm.py" name="pnp" output="screen">
+		<param name="object_topic"       value="/pcl/object/base_frame" />
   	</node>
 </launch>
