@@ -248,12 +248,38 @@ def pick(nameobject, collisionObject, side):
         print "WARNING! This is a single arm manipulation task"
 
     # Find the list of possible grasp depending on the shape and dimension of the object
-    graspList, approachList = graspAndApproach(collisionObject, arm)
+    graspList = isGraspable(collisionObject, arm)
     if len(graspList) != 0:
+        ## TEST
+        # if nameobject == 'box0':
+        #     grasp = graspList[1]
+        #     approach = findApproach(grasp)
+        #     print "POSE1"
+        #     # p.clear()
+        #     approachTest = arm.moveToPose(approach, grip, max_velocity_scaling_factor = robotSpd, plan_only = False,  planning_time = compTime)
+        #     p.removeCollisionObject(nameobject)
+        #     approachTest = arm.moveToPose(grasp, grip, max_velocity_scaling_factor = robotSpd, plan_only = False,  planning_time = compTime)
+        #     # p.addSolidPrimitive(nameobject, collisionObject.primitives[0], collisionObject.primitive_poses[0], True)      
+        #     # time.sleep(5)
+        #     # grasp = graspList[1]
+        #     # # approach = findApproach(grasp)
+        #     # print "POSE1"
+        #     # # approachTest = arm.moveToPose(approach, grip, max_velocity_scaling_factor = robotSpd, plan_only = False,  planning_time = compTime)
+        #     # # p.removeCollisionObject(nameobject)
+        #     # approachTest = arm.moveToPose(grasp, grip, max_velocity_scaling_factor = robotSpd, plan_only = False,  planning_time = compTime)
+        #     # # p.addSolidPrimitive(nameobject, collisionObject.primitives[0], collisionObject.primitive_poses[0], True)      
+        #     # time.sleep(5)
+        #     # # print "POSE3"
+        #     # grasp = graspList[2]
+        #     # approachTest = arm.moveToPose(grasp, grip, max_velocity_scaling_factor = robotSpd, plan_only = False,  planning_time = compTime)
+        #     time.sleep(100)
+        # else:
+
         # Test if object and approach reachable
         p.removeCollisionObject(nameobject)
-        grasp, approach = findBestPose(graspList, approachList, arm, grip) # returns best pose and corresponding approach if it exists
+        grasp, approach = findBestPose(graspList, arm, grip) # returns best pose and corresponding approach if it exists
         p.addSolidPrimitive(nameobject, collisionObject.primitives[0], collisionObject.primitive_poses[0], True)
+
      
         if grasp != None: 
             # Try to approach the object without collision
@@ -286,12 +312,10 @@ def pick(nameobject, collisionObject, side):
         print "IMPOSSIBLE TO REACH THE OBJECT BECAUSE IT IS TOO BIG FOR THE GRIPPERS, GOING TO REACH NEXT OBJECT"
         return False, grasp       
 
-def graspAndApproach(collisionObject, arm):
+def isGraspable(collisionObject, arm):
     objectType = SolidPrimitive()
-    GRIP_SIZE = 0.1 # size of the open grippers
-    SHIFT = 0.10 # distance between approach and grasp  
+    GRIP_SIZE = 0.1
     graspList = []
-    approachList = []
     # The possible grasp depends on the type of the object (BOX or CYLINDER)
     if collisionObject.primitives[0].type == objectType.CYLINDER:
         # Poses depends on the arm group used
@@ -309,37 +333,26 @@ def graspAndApproach(collisionObject, arm):
                 # Fine tuning of the grasp position
                 if quat == right_side: 
                     grasp.pose.position.x = 0.97*grasp.pose.position.x 
-                    grasp.pose.position.y += min((collisionObject.primitives[0].dimensions[1]),0.05) #account for object being too tall most of the time
-                    grasp.pose.position.z -= 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
-                    approach = deepcopy(grasp)
-                    approach.pose.position.y -= SHIFT
+                    grasp.pose.position.y = grasp.pose.position.y + min((collisionObject.primitives[0].dimensions[1]),0.05) #account for object being too tall most of the time
+                    grasp.pose.position.z = grasp.pose.position.z - 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
                 elif quat == left_side: 
-                    grasp.pose.position.z -= 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
-                    grasp.pose.position.y -= min((collisionObject.primitives[0].dimensions[1]),0.05) #account for object being too tall most of the time
-                    approach = deepcopy(grasp)
-                    approach.pose.position.y += SHIFT
+                    grasp.pose.position.z = grasp.pose.position.z - 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
+                    grasp.pose.position.y = grasp.pose.position.y - min((collisionObject.primitives[0].dimensions[1]),0.05) #account for object being too tall most of the time
                 elif quat == front: 
                     grasp.pose.position.y = 0.975*grasp.pose.position.y 
-                    approach = deepcopy(grasp)
-                    approach.pose.position.x -= SHIFT       
                 elif quat == frontOriented:
                     grasp.pose.position.y = 0.975*grasp.pose.position.y 
-                    grasp.pose.position.z -= 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
-                    approach = deepcopy(grasp)
-                    approach.pose.position.x -= SHIFT
+                    grasp.pose.position.z = grasp.pose.position.z - 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
                 elif quat == top: 
-                    grasp.pose.position.z += collisionObject.primitives[0].dimensions[0]/2 - 0.08
-                    approach = deepcopy(grasp)
-                    approach.pose.position.z += SHIFT
+                    grasp.pose.position.z = grasp.pose.position.z + collisionObject.primitives[0].dimensions[0]/2 - 0.08
                 graspList.append(grasp)
-                approachList.append(approach)
     # Box grasp is not fined tuned yet !
     elif collisionObject.primitives[0].type == objectType.BOX:
-        grasp_top = PoseStamped()
-        grasp_top.header = deepcopy(collisionObject.header)
-        grasp_top.pose = deepcopy(collisionObject.primitive_poses[0])
-        grasp_side = deepcopy(grasp_top)
-        grasp_front = deepcopy(grasp_top)
+        grasp = PoseStamped()
+        grasp.header = deepcopy(collisionObject.header)
+        grasp.pose = deepcopy(collisionObject.primitive_poses[0])
+        grasp2 = deepcopy(grasp)
+        grasp3 = deepcopy(grasp)
         # Orientation of the object in the base frame
         quat = [grasp.pose.orientation.x, grasp.pose.orientation.y, grasp.pose.orientation.z, grasp.pose.orientation.w]
         euler = euler_from_quaternion(quat)
@@ -352,26 +365,17 @@ def graspAndApproach(collisionObject, arm):
             top_box.y = quat_top[1]
             top_box.z = quat_top[2]
             top_box.w = quat_top[3]
-            grasp_top.pose.position.z += 0.5*collisionObject.primitives[0].dimensions[2] - 0.08#account for object being too tall most of the time
-            grasp_top.pose.orientation = top_box
-            approach_top = deepcopy(grasp_top)
-            approach_top.pose.position.z += SHIFT
-            graspList.append(grasp_top)
-            approachList.append(approach_top)
+            grasp.pose.position.z = grasp.pose.position.z + 0.5*collisionObject.primitives[0].dimensions[2] - 0.08#account for object being too tall most of the time
+            grasp.pose.orientation = top_box
+            graspList.append(grasp)
             # side
             quat_side = quaternion_from_euler(pi, yaw, pi/2, axes='rxzy')#
             box_side.x = quat_side[0]
             box_side.y = quat_side[1]
             box_side.z = quat_side[2]
             box_side.w = quat_side[3]
-            grasp_side.pose.orientation = box_side
-            approach_side = deepcopy(grasp_side)
-            euler_side = euler_from_quaternion(quat_side)
-            angle_side = euler_side[0]
-            approach_side.pose.position.x += SHIFT*sin(angle_side) 
-            approach_side.pose.position.y += SHIFT*cos(angle_side)
-            graspList.append(grasp_side) 
-            approachList.append(approach_side)
+            grasp2.pose.orientation = box_side
+            graspList.append(grasp2) 
         if collisionObject.primitives[0].dimensions[1] <= GRIP_SIZE:
             # front
             quat_front = quaternion_from_euler(pi, yaw-pi/2, pi/2, axes='rxzy')
@@ -379,26 +383,21 @@ def graspAndApproach(collisionObject, arm):
             box_front.y = quat_front[1]
             box_front.z = quat_front[2]
             box_front.w = quat_front[3]
-            grasp_front.pose.orientation = box_front
-            approach_front = deepcopy(grasp_front)
-            euler_front = euler_from_quaternion(quat_front)
-            angle_front = euler_front[0]
-            approach_front.pose.position.x += SHIFT*sin(angle_front) 
-            approach_front.pose.position.y += SHIFT*cos(angle_front)
-            graspList.append(grasp_front) 
-            approachList.append(approach_front)
+            grasp3.pose.orientation = box_front
+            graspList.append(grasp3) 
            
-    return graspList, approachList
+    return graspList
 
-def findBestPose(graspList, approachList, arm, grip):
+def findBestPose(graspList, arm, grip):
     globalCost = []
     idx = 1
 
-    for grasp, approach in zip(graspList, approachList):
+    for grasp in graspList:
         print "TESTING FOR GRASP", idx
         graspCost = testPose(grasp, arm, grip)
         if graspCost != 10000: # grasp is reachable without collision
             print "TESTING FOR APPROACH", idx
+            approach = findApproach(grasp)
             approachCost = testPose(approach, arm, grip)
         else:
             approachCost = 10000
@@ -409,7 +408,7 @@ def findBestPose(graspList, approachList, arm, grip):
     if min(globalCost) != 20000:
         idx = np.where(globalCost == min(globalCost))[0][0]
         grasp = graspList[idx]
-        approach = approachList[idx]
+        approach = findApproach(grasp)
     else:
         grasp = None
         approach = None
@@ -469,6 +468,28 @@ def endPose(joints, arm):
     # Return the pose in base frame for the corresponding joint angles
     correspondingPose = solver.forward_position_kinematics(jointsdico)
     return correspondingPose
+
+def findApproach(grasp):
+    approach = deepcopy(grasp)
+    quat = grasp.pose.orientation
+    SHIFT = 0.10 # distance between approach and grasp
+    # Each strategies correspond to the grasp pose
+    if quat == front or quat == frontOriented:
+        approach.pose.position.x = approach.pose.position.x - SHIFT
+    elif quat == top or quat == top_box:
+        approach.pose.position.z = approach.pose.position.z + SHIFT
+    elif quat == right_side:
+        approach.pose.position.y = approach.pose.position.y - SHIFT
+    elif quat == left_side:
+        approach.pose.position.y = approach.pose.position.y + SHIFT
+    elif quat == box_side or quat == box_front:
+        quat2 = [quat.x, quat.y, quat.z, quat.w]
+        euler = euler_from_quaternion(quat2)
+        angle = euler[0]
+        approach.pose.position.x = approach.pose.position.x + SHIFT*sin(angle) 
+        approach.pose.position.y = approach.pose.position.y + SHIFT*cos(angle)
+       
+    return approach        
 
 # # For future work
 # def attachObject2Robot(name, collisionObject, link_name):
