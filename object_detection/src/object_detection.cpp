@@ -209,7 +209,7 @@ isCylinder(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in, pcl::PointCloud<pcl::No
     extract.setIndices (inliers_cylinder);
     extract.setNegative (false);    
     extract.filter (*cloud_cylinder);
-
+  
     return cloud_cylinder->points.size();
 }
 
@@ -331,11 +331,11 @@ find_objects(const boost::shared_ptr<const sensor_msgs::PointCloud2>& cloud_msg)
       pcl::transformPointCloud(*cloud_objects, *cloudObjectsProjected, projectionTransform);
       for (int i = 0; i < (*cloudObjectsProjected).size(); i++)
       {
-        if (cloudObjectsProjected->points[i].y > minPoint.y+0.05
-          and cloudObjectsProjected->points[i].y < maxPoint.y-0.05
-          and cloudObjectsProjected->points[i].z > minPoint.z+0.05
-          and cloudObjectsProjected->points[i].z < maxPoint.z-0.05
-          and cloudObjectsProjected->points[i].x > (minPoint.x+maxPoint.x)/2+0.02
+        if (cloudObjectsProjected->points[i].y > minPoint.y 
+          and cloudObjectsProjected->points[i].y < maxPoint.y
+          and cloudObjectsProjected->points[i].z > minPoint.z 
+          and cloudObjectsProjected->points[i].z < maxPoint.z 
+          and cloudObjectsProjected->points[i].x > (minPoint.x+maxPoint.x)/2
           and cloudObjectsProjected->points[i].x < (minPoint.x+maxPoint.x)/2+0.50)
         {
           inliers_objects->indices.push_back(i);
@@ -389,7 +389,7 @@ find_objects(const boost::shared_ptr<const sensor_msgs::PointCloud2>& cloud_msg)
         // Evaluate the shape of the object
         int cylPts = isCylinder(object, cloud_object_normal, cloud_cylinder);
         int planePts = isPlane(object, cloud_rest, cloud_plane);
-        
+               
         pcl::PointCloud<pcl::PointXYZ> center;
 
         // If it is a cylinder
@@ -424,7 +424,7 @@ find_objects(const boost::shared_ptr<const sensor_msgs::PointCloud2>& cloud_msg)
 
           float dh = maxPoint.z - minPoint.z;
           float dr = (maxPoint.x - minPoint.x)/2;
-          std::cerr << "Dimensions of the cylinder, h: " << dh << ", r: " << dr << std::endl;
+          // std::cerr << "Dimensions of the cylinder, h: " << dh << ", r: " << dr << std::endl;
           
           std::string name = "cylinder" +nb[nbCyl];
           nbCyl ++;

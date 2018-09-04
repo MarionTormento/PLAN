@@ -1,0 +1,45 @@
+<launch>
+  <arg name="robot_base"          default="base" />           <!-- Name of the robot base frame -->
+  <arg name="kinect_frame"         default="kinect2_ir_optical_frame" />
+
+  <arg name="simulation"         default="false" />
+  <arg name="kinect_angle"        default="30"/>
+
+	<!-- <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch"/> -->
+
+  <!-- Run the static tf transforms from the static servo frame to the robot base -->
+  <group if="$(arg simulation)">
+    <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_servokinect2"  args="0.2452 -0.0501 0.9063 0.5 -0.5 0.5 -0.5 $(arg robot_base) /kinect_servo_frame" />
+
+  	<node pkg="tf2_ros" type="static_transform_publisher" name="kinect_broadcaster2" args="0.0 0.0 0.0 -0.342 0.0 0.0 0.940 /kinect_servo_frame $(arg kinect_frame)" /> <!-- 40deg -->
+
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="kinect_broadcaster2" args="0.0 0.0 0.0 -0.259 0.0 0.0 0.966 /kinect_servo_frame $(arg kinect_frame)" />   30deg --> 
+  </group>
+  <!-- IF CONNECTED TO THE MOTOR COMMENT THE STATIC TF AND PUBLISH THE FOLLOWING -->
+  <group unless="$(arg simulation)">
+    <include file="$(find embedded_control)/launch/kinect_motor_control.launch">
+        <arg name="kinect_frame"  value="$(arg kinect_frame)" />   
+    </include>
+  </group>
+
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+	  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/kinect2/sd/points" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.01
+      filter_limit_max: 1.5
+      filter_limit_negative: False
+      leaf_size: 0.01
+    </rosparam>
+  </node>
+
+  <!-- Construct the object for moveit -->
+  <node pkg="pcl_detection" type="object_projection.py" name="object_projection" output="screen">
+    <param name="robot_base"       value="$(arg robot_base)" />
+    <param name="kinect_frame"     value="$(arg kinect_frame)" />
+  </node>
+
+</launch>

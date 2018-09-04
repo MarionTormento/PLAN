@@ -55,7 +55,6 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    obj.msg
-   point.msg
    box.msg
  )
 
@@ -139,8 +138,6 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(segmentation_moveittable src/segmentation_moveittable.cpp)
-target_link_libraries(segmentation_moveittable ${catkin_LIBRARIES})
 add_executable(object_detection src/object_detection.cpp)
 target_link_libraries(object_detection ${catkin_LIBRARIES})
 

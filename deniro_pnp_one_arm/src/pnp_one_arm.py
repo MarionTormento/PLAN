@@ -7,7 +7,7 @@
 
 import rospy
 import roslib
-from pcl_detection.msg import obj
+from object_detection.msg import obj
 import sys
 import cProfile, pstats
 import time 
@@ -205,8 +205,8 @@ def sortObjects(objectName):
     distance = [] 
     
     for obj in objectName:
+        print obj
         exec(obj+"=CollisionObject()")
-        collisionObject = globals()[obj]
         collisionObject = p._objects[obj]
         if collisionObjects[0] == 0:
             collisionObjects[0] = collisionObject
@@ -329,6 +329,11 @@ def graspAndApproach(collisionObject, arm):
                     approach.pose.position.x -= SHIFT
                 elif quat == top: 
                     grasp.pose.position.z += collisionObject.primitives[0].dimensions[0]/2 - 0.08
+                    grasp.pose.position.x = 0.97*grasp.pose.position.x
+                    if grasp.pose.position.y < 0:
+                        grasp.pose.position.y = 0.96*grasp.pose.position.y
+                    else:
+                        grasp.pose.position.y = 1.04*grasp.pose.position.y
                     approach = deepcopy(grasp)
                     approach.pose.position.z += SHIFT
                 graspList.append(grasp)
@@ -341,7 +346,7 @@ def graspAndApproach(collisionObject, arm):
         grasp_side = deepcopy(grasp_top)
         grasp_front = deepcopy(grasp_top)
         # Orientation of the object in the base frame
-        quat = [grasp.pose.orientation.x, grasp.pose.orientation.y, grasp.pose.orientation.z, grasp.pose.orientation.w]
+        quat = [grasp_top.pose.orientation.x, grasp_top.pose.orientation.y, grasp_top.pose.orientation.z, grasp_top.pose.orientation.w]
         euler = euler_from_quaternion(quat)
         yaw = -(euler[2]+pi/2)
         # If the object is small enough to be grasped
@@ -353,6 +358,8 @@ def graspAndApproach(collisionObject, arm):
             top_box.z = quat_top[2]
             top_box.w = quat_top[3]
             grasp_top.pose.position.z += 0.5*collisionObject.primitives[0].dimensions[2] - 0.08#account for object being too tall most of the time
+            grasp_top.pose.position.x = 0.97*grasp_top.pose.position.x
+            grasp_top.pose.position.y = 0.97*grasp_top.pose.position.y
             grasp_top.pose.orientation = top_box
             approach_top = deepcopy(grasp_top)
             approach_top.pose.position.z += SHIFT
@@ -365,6 +372,8 @@ def graspAndApproach(collisionObject, arm):
             box_side.z = quat_side[2]
             box_side.w = quat_side[3]
             grasp_side.pose.orientation = box_side
+            grasp_top.pose.position.x = 0.95*grasp_top.pose.position.x
+            grasp_top.pose.position.y = 0.95*grasp_top.pose.position.y
             approach_side = deepcopy(grasp_side)
             euler_side = euler_from_quaternion(quat_side)
             angle_side = euler_side[0]
@@ -380,6 +389,8 @@ def graspAndApproach(collisionObject, arm):
             box_front.z = quat_front[2]
             box_front.w = quat_front[3]
             grasp_front.pose.orientation = box_front
+            grasp_top.pose.position.x = 0.96*grasp_top.pose.position.x
+            grasp_top.pose.position.y = 0.96*grasp_top.pose.position.y
             approach_front = deepcopy(grasp_front)
             euler_front = euler_from_quaternion(quat_front)
             angle_front = euler_front[0]
@@ -416,9 +427,9 @@ def findBestPose(graspList, approachList, arm, grip):
 
     return grasp, approach
 
-def testPose(pose, arm, grip):
-    # Plan only of the movement to pose
+def testPose(pose, arm, grip, **kwargs):
     test = arm.moveToPose(pose, grip, max_velocity_scaling_factor = robotSpd, plan_only = True,  planning_time = compTime)
+
     # if plan failed (-1: No solution / -2: Solution with collision)
     if test.error_code.val == -1 or test.error_code.val == -2:
         return 10000
@@ -428,7 +439,7 @@ def testPose(pose, arm, grip):
         return cost
 
 def costFunction(trajectory, pose, arm):
-    poseFct = 150 # factor for the influence of the cost pose
+    poseFct = 200 # factor for the influence of the cost pose
     jointFct = 1 # factor for the influence of the cost joint
     costPose = 0
     costJoints = 0
@@ -502,7 +513,7 @@ def place(side, currentPose):
 
     # Retreat is a upper positon to avoid collision between the grasped object and the rest of the planning scene
     retreat =deepcopy(currentPose)
-    retreat.pose.position.z = approach.pose.position.z + 0.20
+    retreat.pose.position.z = retreat.pose.position.z + 0.20
     retreatTest = arm.moveToPose(retreat, grip, max_velocity_scaling_factor = robotSpd, plan_only=False,  planning_time = compTime)
     print "RETREAT", retreatTest.error_code, "COST", costFunction(retreatTest, retreat, arm)
     # Basket can be any pose set at the beggining of the script    
@@ -527,7 +538,7 @@ if __name__=='__main__':
         leftgripper.open()
         g.moveToJointPosition(jts_both, pos_high,  max_velocity_scaling_factor = 0.5, plan_only=False)     
         # Awaits for the planning scene to build correctly
-        time.sleep(5)
+        time.sleep(10)
         print "There is", len(objectName), "object(s) detected on the table"
         # Sort the object list
         objectName, collisionObjects = sortObjects(objectName)

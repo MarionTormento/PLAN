@@ -38,7 +38,6 @@ def projectObject(msg):
         yaw = -(val[1]-1.5708)
         msg.quaternion = tf.transformations.quaternion_from_euler(0, 0, yaw)
         objPub.publish(msg)
-        print msg
 
     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
         print e
@@ -102,9 +101,7 @@ def projectBox(msg):
                 box.dimensions = [w, h, msg.dimensions1[1]]
             else:
                 box.dimensions = [w, h, msg.dimensions1[0]]
-        # print box
         objPub.publish(box)
-        print box
 
             
     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:

@@ -37,7 +37,7 @@
   </node>
 
   <!-- Construct the object for moveit -->
-  <node pkg="pcl_detection" type="object_projection.py" name="object_projection" output="screen">
+  <node pkg="object_detection" type="object_projection.py" name="object_projection" output="screen">
     <param name="robot_base"       value="$(arg robot_base)" />
     <param name="kinect_frame"     value="$(arg kinect_frame)" />
   </node>
