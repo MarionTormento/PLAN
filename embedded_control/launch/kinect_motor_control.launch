@@ -7,7 +7,7 @@
 
     <!-- Start the kinect motor controller -->
     <include file="$(find dynamixel_workbench_controllers)/launch/position_control.launch" >
-        <arg name="device_name"  value="/dev/ttyACM0" />    <!-- USB port -->
+        <arg name="device_name"  value="/dev/ttyUSB0" />    <!-- USB port -->
         <arg name="baud_rate"  value="1000000" />    <!-- baud rate of the servo -->
         <arg name="scan_range"  value="1" />    <!-- baud rate of the servo -->
     </include> 
@@ -22,31 +22,8 @@
     </node>
 
     <!-- Start the GUI to control motor speed and monitor temperature -->
-    <node name="kinect_motor_GUI" pkg="embedded_control" type="gui_kinect.py" required="true" output="screen">
-    </node>
+<!--     <node name="kinect_motor_GUI" pkg="embedded_control" type="gui_kinect.py" required="true" output="screen">
+    </node> -->
 
 </launch>
 
-    <!-- <arg name="controller_name"     default="kinect_tilt_controller" />       -->
-<!--     <node name="dynamixel_manager" pkg="dynamixel_controllers" type="controller_manager.py" required="true" output="screen">
-        <rosparam>
-            namespace: dxl_manager
-            serial_ports:
-                pan_tilt_port:
-                    port_name: "/dev/ttyACM0"
-                    baud_rate: 1000000
-                    min_motor_id: 1
-                    max_motor_id: 5
-                    update_rate: 100
-        </rosparam>
-    </node> -->
-
-    <!-- Load controller configuration to parameter server -->
-    <!-- <rosparam file="$(find embedded_control)/config/kinect_tilt_controller.yaml" command="load"/> -->
-
-    <!-- Start the joint controller -->
-<!--     <node pkg="dynamixel_controllers" type="controller_spawner.py" name="kinect_controller_spawner"
-            args="-manager=dxl_manager
-                -port=pan_tilt_port
-                $(arg controller_name)"
-            output="screen"/> -->
