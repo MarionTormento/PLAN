@@ -73,9 +73,6 @@ jts_both = ['left_e0', 'left_e1', 'left_s0', 'left_s1', 'left_w0', 'left_w1', 'l
 jts_right = ['right_e0', 'right_e1', 'right_s0', 'right_s1', 'right_w0', 'right_w1', 'right_w2']
 jts_left = ['left_e0', 'left_e1', 'left_s0', 'left_s1', 'left_w0', 'left_w1', 'left_w2']
 pos_high = [-1.5992511877797613, 1.3277948504704176, 0.689270903962913, -1.4012007670249345, 0.1754894648887202, 1.8146491089961856, 3.0589327838441367, 1.9602758615925566, 1.4333515313858163, -0.5903707508267928, -1.005913550861348, -0.5306659661076933, 2.051042542353038, -2.677815699467131]
-# pos_high = [-1.3525875597179635, 1.1662088939898858, 1.0538448012772792, -1.3380147422330522, 0.24850488763743703, 1.7560245069318274, 3.045335359149518, 1.9190099656446526, 1.3533545501119062, -1.151252581308003, -0.9921020745648913, -0.6787864986392956, 1.8607186957050068, -2.7857091107999112]
-# approach = [0.9257574054888472, 1.249810846929641, -0.060975736318445196, -0.6415874645330742, 0.3992185000471789, 1.4243011615516066, -1.7092380929013222]
-# jts_zero = [0.0, -0.55, 0.0, 0.75, 0.0, 1.26, 0.0] # Neutral
 jts_zero = [0.0, (-2.147+1.047)/2, 0.0, (-0.05+2.618)/2, 0.0, (-1.5707+2.094)/2, 0.0] #[right_s0, right_s1, right_e0, right_e1, right_w0, right_w1, right_w2]
 
 # Global variables
@@ -358,8 +355,8 @@ def graspAndApproach(collisionObject, arm):
             top_box.z = quat_top[2]
             top_box.w = quat_top[3]
             grasp_top.pose.position.z += 0.5*collisionObject.primitives[0].dimensions[2] - 0.08#account for object being too tall most of the time
-            grasp_top.pose.position.x = 0.97*grasp_top.pose.position.x
-            grasp_top.pose.position.y = 0.97*grasp_top.pose.position.y
+            grasp_top.pose.position.x = 0.98*grasp_top.pose.position.x
+            grasp_top.pose.position.y = 0.9*grasp_top.pose.position.y
             grasp_top.pose.orientation = top_box
             approach_top = deepcopy(grasp_top)
             approach_top.pose.position.z += SHIFT

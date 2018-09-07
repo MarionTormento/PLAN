@@ -49,10 +49,10 @@ bskposR.header.stamp = rospy.Time.now()
 bskposR.pose.position.x = 1.0
 bskposR.pose.position.y = -0.30
 bskposR.pose.position.z = 0.70
-bskposR.pose.orientation.x = 0.0
-bskposR.pose.orientation.y = 0.707
-bskposR.pose.orientation.z = 0.0
-bskposR.pose.orientation.w = 0.707
+bskposR.pose.orientation.x = 0.707
+bskposR.pose.orientation.y = 0.0
+bskposR.pose.orientation.z = 0.707
+bskposR.pose.orientation.w = 0.0
 
 bskposL = PoseStamped()
 bskposL.header.frame_id = "base"
@@ -60,10 +60,10 @@ bskposL.header.stamp = rospy.Time.now()
 bskposL.pose.position.x = 1.0
 bskposL.pose.position.y = 0.30
 bskposL.pose.position.z = 0.70
-bskposL.pose.orientation.x = 0.0
-bskposL.pose.orientation.y = 0.707
-bskposL.pose.orientation.z = 0.0
-bskposL.pose.orientation.w = 0.707
+bskposL.pose.orientation.x = 0.707
+bskposL.pose.orientation.y = 0.0
+bskposL.pose.orientation.z = 0.707
+bskposL.pose.orientation.w = 0.0
 
 compTime = 2.0
 robotSpd = 0.7
@@ -72,9 +72,6 @@ jts_both = ['left_e0', 'left_e1', 'left_s0', 'left_s1', 'left_w0', 'left_w1', 'l
 jts_right = ['right_e0', 'right_e1', 'right_s0', 'right_s1', 'right_w0', 'right_w1', 'right_w2']
 jts_left = ['left_e0', 'left_e1', 'left_s0', 'left_s1', 'left_w0', 'left_w1', 'left_w2']
 pos_high = [-1.5992511877797613, 1.3277948504704176, 0.689270903962913, -1.4012007670249345, 0.1754894648887202, 1.8146491089961856, 3.0589327838441367, 1.9602758615925566, 1.4333515313858163, -0.5903707508267928, -1.005913550861348, -0.5306659661076933, 2.051042542353038, -2.677815699467131]
-# pos_high = [-1.3525875597179635, 1.1662088939898858, 1.0538448012772792, -1.3380147422330522, 0.24850488763743703, 1.7560245069318274, 3.045335359149518, 1.9190099656446526, 1.3533545501119062, -1.151252581308003, -0.9921020745648913, -0.6787864986392956, 1.8607186957050068, -2.7857091107999112]
-# approach = [0.9257574054888472, 1.249810846929641, -0.060975736318445196, -0.6415874645330742, 0.3992185000471789, 1.4243011615516066, -1.7092380929013222]
-# jts_zero = [0.0, -0.55, 0.0, 0.75, 0.0, 1.26, 0.0] # Neutral
 jts_zero = [0.0, (-2.147+1.047)/2, 0.0, (-0.05+2.618)/2, 0.0, (-1.5707+2.094)/2, 0.0] #[right_s0, right_s1, right_e0, right_e1, right_w0, right_w1, right_w2]
 
 # Global variables
@@ -90,28 +87,12 @@ right_side.x = 0.5
 right_side.y = 0.5
 right_side.z = 0.5
 right_side.w = -0.5
-# right_side.x = -0.653
-# right_side.y = 0.653
-# right_side.z = 0.271
-# right_side.w = 0.271
-# left side
-left_side = Quaternion()
-left_side.x = 0.653
-left_side.y = 0.653
-left_side.z = -0.271
-left_side.w = 0.271
 # front flat
 front = Quaternion()
 front.x = 0.707
 front.y = 0.0
 front.z = 0.707
 front.w = 0.0
-# front oriented
-frontOriented = Quaternion()
-frontOriented.x = -0.924
-frontOriented.y = 0.0
-frontOriented.z = -0.383
-frontOriented.w = 0.0
 # top
 top = Quaternion()
 top.x = 1.0
@@ -119,10 +100,8 @@ top.y = 0.0
 top.z = 0.0
 top.w = 0.0
 # list of poses for each arm for the cylinder case
-# rightPoses = [right_side, front, frontOriented, top]
 rightPoses = [right_side, front, top]
 
-# leftPoses = [left_side, front, frontOriented, top]
 
 ## Box
 # top
@@ -277,12 +256,6 @@ def pick(nameobject, collisionObject, side):
         grasp, approach = findBestPose(graspList, approachList, arm, grip) # returns best pose and corresponding approach if it exists
         p.addSolidPrimitive(nameobject, collisionObject.primitives[0], collisionObject.primitive_poses[0], True)
 
-        # grasp = graspList[0]
-        # approach = approachList[0]
-        # print approach
-        # print grasp
-        # p.clear()
-
         if grasp != None: 
             # Try to approach the object without collision
             approachTest = arm.moveToPose(approach, grip, max_velocity_scaling_factor = robotSpd, plan_only = False,  planning_time = compTime)
@@ -341,22 +314,12 @@ def graspAndApproach(collisionObject, arm):
                     grasp.pose.position.z -= 0.03
                     approach = deepcopy(grasp)
                     approach.pose.position.y -= SHIFT
-                elif quat == left_side: 
-                    # grasp.pose.position.z -= 0.5*(collisionObject.primitives[0].dimensions[0]) #account for object being too tall most of the time
-                    grasp.pose.position.y -= min((collisionObject.primitives[0].dimensions[1]),0.05) #account for object being too tall most of the time
-                    approach = deepcopy(grasp)
-                    approach.pose.position.y += SHIFT
                 elif quat == front: 
                     grasp.pose.position.y = 0.975*grasp.pose.position.y 
                     grasp.pose.position.x -= 0.08
                     # grasp.pose.position.z += 0.01
                     approach = deepcopy(grasp)
                     approach.pose.position.x -= SHIFT       
-                elif quat == frontOriented:
-                    grasp.pose.position.y = 0.975*grasp.pose.position.y 
-                    grasp.pose.position.x -= 0.09
-                    approach = deepcopy(grasp)
-                    approach.pose.position.x -= SHIFT
                 elif quat == top: 
                     grasp.pose.position.z += collisionObject.primitives[0].dimensions[0]/2 + 0.06
                     grasp.pose.position.x = 0.97*grasp.pose.position.x
@@ -414,10 +377,6 @@ def graspAndApproach(collisionObject, arm):
 
             approach_side.pose.position.x += 1.5*SHIFT*cos(angle_side)
             approach_side.pose.position.y += 1.5*SHIFT*sin(angle_side)
-
-            # print(angle_side)
-            # approach_side.pose.position.x += SHIFT*sin(angle_side) 
-            # approach_side.pose.position.y += SHIFT*cos(angle_side)
             graspList.append(grasp_side) 
             approachList.append(approach_side)
         if collisionObject.primitives[0].dimensions[1] <= GRIP_SIZE:
@@ -560,10 +519,6 @@ if __name__=='__main__':
         rightgripper = custom_gripper("CRAB")
         leftgripper = custom_gripper("EAGLE")
         rightgripper.open()
-
-        # p.attachBox(rightgripper.name, 0.14, 0.1, 0.1, 0, 0, -0.01, 'right_gripper',
-        #           touch_links=None, detach_posture=None, weight=0.0,
-        #           use_service=True)
 
         g.moveToJointPosition(jts_both, pos_high,  max_velocity_scaling_factor = 0.5, plan_only=False)     
         # Awaits for the planning scene to build correctly

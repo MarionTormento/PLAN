@@ -22,8 +22,8 @@
     </node>
 
     <!-- Start the GUI to control motor speed and monitor temperature -->
-<!--     <node name="kinect_motor_GUI" pkg="embedded_control" type="gui_kinect.py" required="true" output="screen">
-    </node> -->
+    <node name="kinect_motor_GUI" pkg="embedded_control" type="gui_kinect.py" required="true" output="screen">
+    </node>
 
 </launch>
 
